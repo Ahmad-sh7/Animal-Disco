@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml.Serialization;
 using UnityEngine;
 
 public class PlayerScript : MonoBehaviour
@@ -65,7 +66,10 @@ public class PlayerScript : MonoBehaviour
         
     }
     
+    //IEnumerator CircleDance(Transform transform)
+    //{
 
+    //}
     IEnumerator ScallingDance(Transform transform)
     {
         isDancing = true;
@@ -96,5 +100,12 @@ public class PlayerScript : MonoBehaviour
     {
         currentSpeed = speed;
     }
-
+    public static void IncreaseScale(Transform transform)
+    {
+        transform.localScale = transform.localScale * 1.02f;
+    }
+    public static void DecreaseScale(Transform transform)
+    {
+        transform.localScale = transform.localScale / 1.02f;
+    }
 }
