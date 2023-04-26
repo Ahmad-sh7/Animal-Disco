@@ -3,7 +3,8 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - NPC
   layers:
   - Default
   - TransparentFX
@@ -40,4 +41,13 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Disco Light
+    uniqueID: 3062336527
+    locked: 0
+  - name: Animals
+    uniqueID: 1417414389
+    locked: 0
+  - name: Player
+    uniqueID: 3777574835
     locked: 0
