@@ -6,7 +6,7 @@ public class NPCController : MonoBehaviour
 {
     [SerializeField] Sprite dogeSprite;
     private string currentInput = "";
-    private bool isDoge = false, isNinja = false;
+    private bool isDoge = false, isNinja = false, isMario = false;
     Dictionary<GameObject, Sprite> npcs;
 
     void Start()
@@ -21,6 +21,7 @@ public class NPCController : MonoBehaviour
     private void Update()
     {
         GetUserInput();
+        DeleteMario();
     }
 
     IEnumerator PerformDance()
@@ -54,9 +55,9 @@ public class NPCController : MonoBehaviour
 
             currentInput += input.ToLower();
 
-            if (currentInput.EndsWith("ninja") || currentInput.EndsWith("doge") || currentInput.EndsWith("squidgame"))
+            if (currentInput.EndsWith("ninja") || currentInput.EndsWith("doge") || currentInput.EndsWith("squidgame") || currentInput.EndsWith("mario"))
             {
-                int code = currentInput.EndsWith("ninja") ? 1 : currentInput.EndsWith("doge") ? 2 : 3;
+                int code = currentInput.EndsWith("ninja") ? 1 : currentInput.EndsWith("doge") ? 2  : currentInput.EndsWith("mario") ? 3 : 4;
                 switch (code)
                 {
                     case 1:
@@ -68,13 +69,48 @@ public class NPCController : MonoBehaviour
                         DogeFunction();
                         break;
                     case 3:
+                        isMario = isMario ? false : true;
+                        MarioFunction();
+                        break;
+                    case 4:
                         break;
                 }
                 currentInput = "";
             }
         }
     }
+    void DeleteMario()
+    {
+        if (isMario)
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            foreach (GameObject npc in npcs.Keys)
+            {
+                SpriteRenderer npcSpriteRenderer = npc.GetComponent<SpriteRenderer>();
+                if (Mathf.Abs(player.transform.position.x - npc.transform.position.x) < 2f && Mathf.Abs(player.transform.position.y - npc.transform.position.y) < 2f)
+                {
+                    npcs.Remove(npc);
+                    Destroy(npc.gameObject);
+                }
+            }
+        }
+    }
+    void MarioFunction()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        
+        
+        if (isMario)
+        {
+            PlayerScript.IncreaseScale(player.transform);
+        }
+        else
+        {
+            PlayerScript.DecreaseScale(player.transform);
 
+        }
+
+    }
     void DogeFunction()
     {
         foreach (GameObject npc in npcs.Keys)
@@ -90,15 +126,17 @@ public class NPCController : MonoBehaviour
     void NinjaFunction()
     {
         GameObject player = GameObject.FindGameObjectWithTag("Player");
+        
         if (isNinja)
-        {
-            PlayerScript.ChangeSpeed(5f);
-            player.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 1f);
-        }
-        else
         {
             PlayerScript.ChangeSpeed(2.5f);
             player.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 0.5f);
+        }
+        else
+        {
+            PlayerScript.ChangeSpeed(5f);
+            player.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 1f);
+            
         }
     }
 }
