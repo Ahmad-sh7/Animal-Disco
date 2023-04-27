@@ -136,7 +136,6 @@ public class NPCController : MonoBehaviour
         {
             PlayerScript.ChangeSpeed(5f);
             player.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 1f);
-            
         }
     }
 }

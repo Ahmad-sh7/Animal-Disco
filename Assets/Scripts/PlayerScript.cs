@@ -9,7 +9,6 @@ public class PlayerScript : MonoBehaviour
     private float rotationDuration = 0.5f, scallingDuration = 0.5f;
     private bool isDancing = false;
     public float rotationSpeed = 360f; // degrees per second
-    public float radius = 1f; // distance from center of circle
 
 
     void Update()
@@ -81,12 +80,12 @@ public class PlayerScript : MonoBehaviour
     IEnumerator CircleDance(Transform transform)
     {
         float timeElapsed = 0f;
-        while(timeElapsed < 3f)
+        while(timeElapsed < 1f)
         {
             float angle = timeElapsed * rotationSpeed;
-            Vector3 newPosition = new Vector3(Mathf.Sin(angle * Mathf.Deg2Rad), Mathf.Cos(angle * Mathf.Deg2Rad), 0f ) * radius;
+            Vector3 newPosition = new Vector3(Mathf.Sin(angle * Mathf.Deg2Rad), Mathf.Cos(angle * Mathf.Deg2Rad), 0f ) * 5f;
             transform.position = newPosition;
-            timeElapsed += Time.deltaTime;
+            timeElapsed += Time.deltaTime/3;
             PerformRotateDance();
             yield return null;
         }
