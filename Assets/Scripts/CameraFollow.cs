@@ -6,6 +6,7 @@ public class CameraFollow : MonoBehaviour
 {
     [SerializeField] GameObject player;
     private PlayerScript playerScript;
+    private bool follow = true;
 
     private void Awake()
     {
@@ -19,6 +20,17 @@ public class CameraFollow : MonoBehaviour
 
     void Update()
     {
-        transform.position = new Vector3(player.transform.position.x, player.transform.position.y, -10);
+        if (follow)
+            transform.position = new Vector3(player.transform.position.x, player.transform.position.y, -10);
+    }
+
+    public void StopFollow()
+    {
+        follow = false;
+    }
+
+    public void StartFollow()
+    {
+        follow = true;
     }
 }

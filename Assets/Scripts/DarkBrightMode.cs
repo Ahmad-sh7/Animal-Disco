@@ -44,4 +44,12 @@ public class DarkBrightMode : MonoBehaviour
         backgroundImage.color = color;
     }
 
+    public void SetScreenBrightness(int brightness)
+    {
+        Color color = backgroundImage.color;
+        color.r = brightness;
+        color.g = brightness;
+        color.b = brightness;
+        backgroundImage.color = color;
+    }
 }
