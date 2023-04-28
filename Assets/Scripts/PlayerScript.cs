@@ -7,8 +7,17 @@ public class PlayerScript : MonoBehaviour
 {
     private static float currentSpeed = 5;
     private float rotationDuration = 0.5f, scallingDuration = 0.5f;
-    private bool isDancing = false;
-    public float rotationSpeed = 360f; // degrees per second
+    private bool isDancing = false, isSquidGame = false;
+    public float rotationSpeed = 360f;
+    private DarkBrightMode screen;
+    private CameraFollow cameraFollow;
+    private NPCController npcController;
+
+    private void Awake()
+    {
+        screen = FindObjectOfType<DarkBrightMode>();
+        cameraFollow = FindObjectOfType<CameraFollow>();
+    }
 
 
     void Update()
@@ -23,12 +32,21 @@ public class PlayerScript : MonoBehaviour
 
             if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3))
                 PerformCircleDance();
+
+            if (Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Keypad4))
+                PerformJumpingDance();
         }
         MovePlayer();
     }
 
     void MovePlayer()
     {
+        if (isSquidGame && (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.A)) )
+        {
+            isSquidGame = false;
+            FindObjectOfType<SceneLoader>().LoadMainScene();
+        }
+
         if (Input.GetKey(KeyCode.W))
             transform.position += new Vector3(0, currentSpeed) * Time.deltaTime;
 
@@ -47,7 +65,6 @@ public class PlayerScript : MonoBehaviour
         if (isDancing) return;
         StartCoroutine(RotateDance(transform));
     }
-
     
     void PerformScallingDance()
     {
@@ -61,6 +78,12 @@ public class PlayerScript : MonoBehaviour
         StartCoroutine(CircleDance(transform));
     }
     
+    void PerformJumpingDance()
+    {
+        if (isDancing) return;
+        StartCoroutine(JumpingDance(transform));
+    }
+
     IEnumerator RotateDance(Transform transform)
     {
         isDancing = true;
@@ -79,6 +102,11 @@ public class PlayerScript : MonoBehaviour
 
     IEnumerator CircleDance(Transform transform)
     {
+        isDancing = true;
+
+        StopDiscoLights();
+        StartBlackScreen();
+
         float timeElapsed = 0f;
         while(timeElapsed < 1f)
         {
@@ -89,6 +117,11 @@ public class PlayerScript : MonoBehaviour
             PerformRotateDance();
             yield return null;
         }
+
+        StartDiscoLights();
+        StopBlackScreen();
+
+        isDancing = false;
     }
     IEnumerator ScallingDance(Transform transform)
     {
@@ -116,6 +149,64 @@ public class PlayerScript : MonoBehaviour
         isDancing = false;
     }
 
+    IEnumerator JumpingDance(Transform transform)
+    {
+        isDancing = true;
+
+        StopCameraFollow();
+        StopDiscoLights();
+        StartBlackScreen();
+
+        float elapsedTime = 0f, rotationDuration = 1f, jumpDuration = 1f, jumpHeight = 20.0f;
+        Vector3 startPos = transform.position;
+        
+        // Rotate fast for 1 Seconds
+        while (elapsedTime < rotationDuration)
+        {
+            float angle = 360f * (Time.deltaTime / 0.1f);
+            transform.Rotate(Vector3.forward, angle);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+        transform.rotation = Quaternion.identity;
+
+        elapsedTime = 0f;
+
+        // Jump Up for 1 Second
+        while (elapsedTime < jumpDuration)
+        {
+            float t = elapsedTime / jumpDuration;
+            transform.position = startPos + new Vector3(0, Mathf.Sin(t * Mathf.PI) * jumpHeight, 0);
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+        transform.position = startPos;
+
+        
+        // Repeat near Jumping
+        for (int i = 0; i < 3; i++)
+        {
+            elapsedTime = 0f;
+            while (elapsedTime < jumpDuration)
+            {
+                float t = elapsedTime / jumpDuration;
+                transform.position = startPos + new Vector3(0, Mathf.Sin(t * Mathf.PI) * (elapsedTime + 1f), 0);
+
+                elapsedTime += 1.5f * Time.deltaTime;
+                yield return null;
+            }
+        }
+
+        transform.position = startPos;
+
+        StartCameraFollow();
+        StartDiscoLights();
+        StopBlackScreen();
+
+        isDancing = false;
+    }
+
     public static void ChangeSpeed(float speed)
     {
         currentSpeed = speed;
@@ -128,4 +219,44 @@ public class PlayerScript : MonoBehaviour
     {
         transform.localScale = transform.localScale / 1.02f;
     }
+
+    void StopDiscoLights()
+    { 
+        DiscoLight[] discoLights= FindObjectsOfType<DiscoLight>();
+        foreach (DiscoLight discoLight in discoLights)
+            discoLight.StopChangeColor();
+    }
+
+    void StartDiscoLights()
+    {
+        DiscoLight[] discoLights = FindObjectsOfType<DiscoLight>();
+        foreach (DiscoLight discoLight in discoLights)
+            discoLight.StartChangeColor();
+    }
+
+    void StartBlackScreen()
+    {
+        screen.SetScreenBrightness(0);
+    }
+
+    void StopBlackScreen()
+    {
+        screen.SetScreenBrightness(1);
+    }
+
+    void StartCameraFollow()
+    {
+        cameraFollow.StartFollow();
+    }
+
+    void StopCameraFollow()
+    {
+        cameraFollow.StopFollow();
+    }
+
+    public void SetIsSquidGame(bool value)
+    {
+        isSquidGame = value;
+    }
+
 }

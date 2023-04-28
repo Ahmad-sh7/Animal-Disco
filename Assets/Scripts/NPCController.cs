@@ -6,11 +6,16 @@ public class NPCController : MonoBehaviour
 {
     [SerializeField] Sprite dogeSprite;
     private string currentInput = "";
-    private bool isDoge = false, isNinja = false, isMario = false;
+    private bool isDoge = false, isNinja = false, isMario = false, isSquidGame = false, isDancing = false, isPolice = false;
     Dictionary<GameObject, Sprite> npcs;
+    DiscoLight[] discoLights;
+    GameObject player;
+    private float moveDistance = 4f;
 
     void Start()
     {
+        player = GameObject.FindGameObjectWithTag("Player");
+
         npcs = new Dictionary<GameObject, Sprite>();
         foreach (GameObject npc in GameObject.FindGameObjectsWithTag("NPC"))
             npcs[npc] = npc.GetComponent<SpriteRenderer>().sprite;
@@ -21,26 +26,31 @@ public class NPCController : MonoBehaviour
     private void Update()
     {
         GetUserInput();
-        DeleteMario();
+        if (isMario)
+            DeleteMario();
+        if (isSquidGame)
+            RemoveDancingNPCWhileSquidGame();
+        if (isPolice)
+            Police();
     }
 
     IEnumerator PerformDance()
     {
         while (true)
         {
-            yield return new WaitForSeconds(Random.Range(2, 5)); // Wait random number of seconds between  [2 and 5]
+            yield return new WaitForSeconds(Random.Range(3, 6)); // Wait random number of seconds between  [2 and 5]
             int danceNumber = Random.Range(1, 3); // Get random number 1 or 2
 
             switch (danceNumber) {
                 case 1:
-                    StartCoroutine(DanceMoveController.RotateDance(transform));
+                    isDancing = true;
+                    StartCoroutine(DanceMoveController.RotateDance(transform, this));
                     break;
                 case 2:
-                    StartCoroutine(DanceMoveController.ScallingDance(transform));
+                    isDancing = true;
+                    StartCoroutine(DanceMoveController.ScallingDance(transform, this));
                     break;
             }
-            
-
             yield return new WaitForSeconds(0.5f); // Wait until the dance is finish
         }
     }
@@ -55,9 +65,14 @@ public class NPCController : MonoBehaviour
 
             currentInput += input.ToLower();
 
-            if (currentInput.EndsWith("ninja") || currentInput.EndsWith("doge") || currentInput.EndsWith("squidgame") || currentInput.EndsWith("mario"))
+            if (currentInput.EndsWith("ninja") || currentInput.EndsWith("doge") || currentInput.EndsWith("squidgame") || currentInput.EndsWith("mario") || currentInput.EndsWith("police"))
             {
-                int code = currentInput.EndsWith("ninja") ? 1 : currentInput.EndsWith("doge") ? 2  : currentInput.EndsWith("mario") ? 3 : 4;
+                int code = 
+                    currentInput.EndsWith("ninja") ? 1 :
+                    currentInput.EndsWith("doge") ? 2  :
+                    currentInput.EndsWith("mario") ? 3 :
+                    currentInput.EndsWith("squidgame") ? 4 :
+                    currentInput.EndsWith("police") ? 5 : -1;
                 switch (code)
                 {
                     case 1:
@@ -73,6 +88,12 @@ public class NPCController : MonoBehaviour
                         MarioFunction();
                         break;
                     case 4:
+                        isSquidGame = true;
+                        SquidGame();
+                        break;
+                    case 5:
+                        isPolice = isPolice ? false : true;
+                        // Police();
                         break;
                 }
                 currentInput = "";
@@ -81,35 +102,20 @@ public class NPCController : MonoBehaviour
     }
     void DeleteMario()
     {
-        if (isMario)
-        {
-            GameObject player = GameObject.FindGameObjectWithTag("Player");
-            foreach (GameObject npc in npcs.Keys)
+        foreach (GameObject npc in npcs.Keys)
+            if (Mathf.Abs(player.transform.position.x - npc.transform.position.x) < 2f && Mathf.Abs(player.transform.position.y - npc.transform.position.y) < 2f)
             {
-                SpriteRenderer npcSpriteRenderer = npc.GetComponent<SpriteRenderer>();
-                if (Mathf.Abs(player.transform.position.x - npc.transform.position.x) < 2f && Mathf.Abs(player.transform.position.y - npc.transform.position.y) < 2f)
-                {
-                    npcs.Remove(npc);
-                    Destroy(npc.gameObject);
-                }
+                npcs.Remove(npc);
+                Destroy(npc.gameObject);
+                break;
             }
-        }
     }
     void MarioFunction()
     {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        
-        
         if (isMario)
-        {
             PlayerScript.IncreaseScale(player.transform);
-        }
         else
-        {
             PlayerScript.DecreaseScale(player.transform);
-
-        }
-
     }
     void DogeFunction()
     {
@@ -138,4 +144,60 @@ public class NPCController : MonoBehaviour
             player.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 1f);
         }
     }
+
+    void SquidGame()
+    {
+        PlayerScript player = FindObjectOfType<PlayerScript>();
+        player.SetIsSquidGame(true);
+
+        discoLights = FindObjectsOfType<DiscoLight>();
+        foreach (DiscoLight discoLight in discoLights)
+        {
+            discoLight.GetComponent<SpriteRenderer>().color = new Color(0, 1f, 0, 1f);
+            discoLight.StartSquidGame();
+        }
+
+    }
+
+    void Police()
+    {
+        foreach (GameObject npc in npcs.Keys)
+        {
+            Vector3 direction = npc.transform.position - player.transform.position;
+            float distance = direction.magnitude;
+
+            if (distance < moveDistance)
+            {
+                float force = 10f * (1f - distance / moveDistance);
+                npc.transform.position += direction.normalized * force * Time.deltaTime;
+            }
+        }     
+    }
+
+    void RemoveDancingNPCWhileSquidGame()
+    {
+        if (discoLights[0].IsRed() && isDancing)
+            Invoke("DestroyGameObject", 1f);
+    }
+
+    void DestroyGameObject()
+    {
+        Destroy(gameObject);
+    }
+
+    public bool IsDancing()
+    {
+        return isDancing;
+    }
+
+    public void SetIsDancing(bool dancing)
+    {
+        isDancing = dancing;
+    }
+
+    public bool IsSquidGame()
+    {
+        return isSquidGame;
+    }
+
 }

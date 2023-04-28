@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class DanceMoveController : MonoBehaviour
 {
-    public static IEnumerator RotateDance(Transform transform)
+    public static IEnumerator RotateDance(Transform transform, NPCController npc)
     {
         float elapsedTime = 0f;
         while (elapsedTime < 0.5f)
@@ -15,9 +15,10 @@ public class DanceMoveController : MonoBehaviour
             yield return null;
         }
         transform.rotation = Quaternion.identity;
+        npc.SetIsDancing(false);
     }
 
-    public static IEnumerator ScallingDance(Transform transform)
+    public static IEnumerator ScallingDance(Transform transform, NPCController npc)
     {
         Vector3 originalScale = transform.localScale;
         Vector3 targetScale = originalScale * 0.5f;
@@ -39,5 +40,6 @@ public class DanceMoveController : MonoBehaviour
             yield return null;
         }
         transform.localScale = originalScale;
+        npc.SetIsDancing(false);
     }
 }
